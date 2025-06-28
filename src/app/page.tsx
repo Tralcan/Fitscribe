@@ -186,10 +186,15 @@ export default function Home() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <Button onClick={handleDownload} size="lg" className="w-full bg-accent text-accent-foreground text-base h-12 hover:bg-accent/90 focus-visible:ring-accent">
-                        <Download className="mr-2 h-5 w-5" />
-                        Descargar Nuevo Archivo .FIT
-                      </Button>
+                      <div className="space-y-2">
+                        <Button onClick={handleDownload} size="lg" className="w-full bg-accent text-accent-foreground text-base h-12 hover:bg-accent/90 focus-visible:ring-accent">
+                          <Download className="mr-2 h-5 w-5" />
+                          Descargar Nuevo Archivo .FIT
+                        </Button>
+                        <p className="text-xs text-center text-muted-foreground px-4">
+                            Nota: Esta es una demostración. La descarga renombrará tu archivo original, pero el contenido del archivo .FIT no se modificará.
+                        </p>
+                      </div>
                     </div>
                   </div>
                   <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
