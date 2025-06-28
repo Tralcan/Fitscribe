@@ -21,6 +21,7 @@ import { Logo } from '@/components/logo';
 import { FileUploader } from '@/components/file-uploader';
 import { FitDetails } from '@/components/fit-details';
 import { ActivityChart } from '@/components/activity-chart';
+import { PowerChart } from '@/components/power-chart';
 import { sports, getSportByValue } from '@/lib/sports';
 
 export type FitData = {
@@ -191,8 +192,9 @@ export default function Home() {
                       </Button>
                     </div>
                   </div>
-                  <div className="mt-8">
+                  <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <ActivityChart />
+                    <PowerChart />
                   </div>
                 </motion.div>
               )}
