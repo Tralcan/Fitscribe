@@ -1,3 +1,195 @@
+"use client";
+
+import { useState, useMemo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Download, Loader2, ArrowLeft } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast"
+import { format } from "date-fns";
+
+import { Logo } from '@/components/logo';
+import { FileUploader } from '@/components/file-uploader';
+import { FitDetails } from '@/components/fit-details';
+import { sports, getSportByValue } from '@/lib/sports';
+
+export type FitData = {
+  activityType: string;
+  sport: string;
+  startTime: Date;
+  duration: string;
+  distance: number;
+};
+
 export default function Home() {
-  return <></>;
+  const [status, setStatus] = useState<'idle' | 'loading' | 'loaded'>('idle');
+  const [file, setFile] = useState<File | null>(null);
+  const [fitData, setFitData] = useState<FitData | null>(null);
+  const [selectedSport, setSelectedSport] = useState<string>('');
+  const { toast } = useToast();
+
+  const handleFileSelect = (selectedFile: File) => {
+    if (!selectedFile.name.toLowerCase().endsWith('.fit')) {
+      toast({
+        variant: "destructive",
+        title: "Invalid File Type",
+        description: "Please upload a valid .FIT file.",
+      });
+      return;
+    }
+    setFile(selectedFile);
+    setStatus('loading');
+
+    // Mock processing the FIT file
+    setTimeout(() => {
+      const mockData: FitData = {
+        activityType: 'Running',
+        sport: 'running',
+        startTime: new Date(),
+        duration: '01:05:23',
+        distance: 10.2,
+      };
+      setFitData(mockData);
+      setSelectedSport(mockData.sport);
+      setStatus('loaded');
+    }, 1500);
+  };
+
+  const handleDownload = () => {
+    if (!file) return;
+
+    // This is a mock download. In a real app, you would generate a new,
+    // modified FIT file with the updated sport. Here, we just download the original file.
+    const blob = new Blob([file], { type: file.type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${selectedSport}_${file.name}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Download Started",
+      description: `Your modified file ${a.download} is downloading.`,
+    })
+  };
+
+  const handleReset = () => {
+    setStatus('idle');
+    setFile(null);
+    setFitData(null);
+    setSelectedSport('');
+  };
+
+  const selectedSportData = useMemo(() => getSportByValue(selectedSport), [selectedSport]);
+
+  const pageVariants = {
+    initial: { opacity: 0, y: 20 },
+    in: { opacity: 1, y: 0 },
+    out: { opacity: 0, y: -20 },
+  };
+
+  const pageTransition = {
+    type: "tween",
+    ease: "anticipate",
+    duration: 0.5
+  };
+
+  return (
+    <main className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4 sm:p-6 md:p-8 font-body">
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <div className="flex justify-center">
+            <Logo />
+          </div>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mt-4 font-headline">
+            FITscribe
+          </h1>
+          <p className="text-md sm:text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">
+            Upload a <span className="font-semibold text-primary">.FIT</span> file, edit the sport, and download your updated activity.
+          </p>
+        </div>
+
+        <Card className="w-full transition-all duration-500 ease-in-out shadow-lg rounded-xl">
+          <CardContent className="p-6 sm:p-8">
+            <AnimatePresence mode="wait">
+              {status === 'idle' && (
+                <motion.div key="idle" initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
+                  <FileUploader onFileSelect={handleFileSelect} />
+                </motion.div>
+              )}
+              {status === 'loading' && (
+                <motion.div key="loading" initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition} className="flex flex-col items-center justify-center space-y-4 h-64">
+                  <Loader2 className="h-12 w-12 text-primary animate-spin" />
+                  <p className="text-muted-foreground">Analyzing your activity...</p>
+                </motion.div>
+              )}
+              {status === 'loaded' && fitData && (
+                <motion.div key="loaded" initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
+                  <div className="flex items-center mb-6">
+                    <Button variant="ghost" size="icon" onClick={handleReset} className="mr-2">
+                      <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <h2 className="text-2xl font-semibold font-headline">Edit Activity</h2>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                      <h3 className="text-xl font-semibold text-foreground font-headline">Activity Details</h3>
+                      <FitDetails data={fitData} />
+                    </div>
+                    <div className="space-y-6">
+                      <h3 className="text-xl font-semibold text-foreground font-headline">Modify Sport</h3>
+                      <div className="space-y-2">
+                        <Label htmlFor="sport-select" className="text-base">Sport</Label>
+                        <Select onValueChange={setSelectedSport} value={selectedSport}>
+                          <SelectTrigger id="sport-select" className="w-full h-12 text-base">
+                            <SelectValue>
+                              {selectedSportData ? (
+                                <div className="flex items-center gap-3">
+                                  <selectedSportData.icon className="h-5 w-5 text-primary" />
+                                  <span>{selectedSportData.label}</span>
+                                </div>
+                              ) : 'Select a sport'}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {sports.map((sport) => (
+                              <SelectItem key={sport.value} value={sport.value} className="text-base">
+                                <div className="flex items-center gap-3">
+                                  <sport.icon className="h-5 w-5 text-muted-foreground" />
+                                  <span>{sport.label}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button onClick={handleDownload} size="lg" className="w-full bg-accent text-accent-foreground text-base h-12 hover:bg-accent/90 focus-visible:ring-accent">
+                        <Download className="mr-2 h-5 w-5" />
+                        Download New .FIT File
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+        <p className="text-center text-sm text-muted-foreground mt-6">
+            FITscribe is a tool for demonstration and does not store your files.
+        </p>
+      </div>
+    </main>
+  );
 }
