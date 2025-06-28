@@ -5,31 +5,57 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import {
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart"
 
 const chartData = [
-  { zone: "Z1 Calentamiento", minutes: 8 },
-  { zone: "Z2 Fácil", minutes: 25 },
-  { zone: "Z3 Aeróbico", minutes: 18 },
-  { zone: "Z4 Umbral", minutes: 12 },
-  { zone: "Z5 Máximo", minutes: 2 },
+    { kilometer: "1", pace: 390 }, { kilometer: "2", pace: 380 },
+    { kilometer: "3", pace: 385 }, { kilometer: "4", pace: 375 },
+    { kilometer: "5", pace: 370 }, { kilometer: "6", pace: 378 },
+    { kilometer: "7", pace: 382 }, { kilometer: "8", pace: 395 },
+    { kilometer: "9", pace: 400 }, { kilometer: "10", pace: 392 },
 ]
 
 const chartConfig = {
-  minutes: {
-    label: "Minutos",
+  pace: {
+    label: "Ritmo",
     color: "hsl(var(--primary))",
   },
 } satisfies ChartConfig
+
+const formatPace = (seconds: number) => {
+  if (isNaN(seconds) || seconds === null) return "0:00";
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+};
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-lg border bg-background p-2 shadow-sm">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-col space-y-1">
+            <span className="text-sm text-muted-foreground">Kilómetro</span>
+            <span className="font-bold">{label}</span>
+          </div>
+          <div className="flex flex-col space-y-1">
+            <span className="text-sm text-muted-foreground">Ritmo</span>
+            <span className="font-bold">{formatPace(payload[0].value)} min/km</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
 
 export function ActivityChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Análisis de Ritmo</CardTitle>
-        <CardDescription>Tiempo en Zonas de Ritmo</CardDescription>
+        <CardTitle>Ritmo por Kilómetro</CardTitle>
+        <CardDescription>Análisis del ritmo en cada kilómetro.</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
@@ -45,23 +71,24 @@ export function ActivityChart() {
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="zone"
+              dataKey="kilometer"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
             />
             <YAxis
-              dataKey="minutes"
+              dataKey="pace"
               tickLine={false}
               axisLine={false}
               tickMargin={10}
-              width={30}
+              width={50}
+              tickFormatter={(value) => formatPace(value as number)}
             />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent indicator="line" />}
+              content={<CustomTooltip />}
             />
-            <Bar dataKey="minutes" fill="var(--color-minutes)" radius={4} />
+            <Bar dataKey="pace" fill="var(--color-pace)" radius={4} />
           </BarChart>
         </ChartContainer>
       </CardContent>

@@ -5,31 +5,50 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import {
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart"
 
 const chartData = [
-  { zone: "Z1 Activo", minutes: 12 },
-  { zone: "Z2 Resistencia", minutes: 28 },
-  { zone: "Z3 Tempo", minutes: 15 },
-  { zone: "Z4 Umbral", minutes: 8 },
-  { zone: "Z5 VO2 Max", minutes: 2 },
+    { kilometer: "1", power: 220 }, { kilometer: "2", power: 230 },
+    { kilometer: "3", power: 225 }, { kilometer: "4", power: 240 },
+    { kilometer: "5", power: 250 }, { kilometer: "6", power: 245 },
+    { kilometer: "7", power: 235 }, { kilometer: "8", power: 215 },
+    { kilometer: "9", power: 210 }, { kilometer: "10", power: 228 },
 ]
 
 const chartConfig = {
-  minutes: {
-    label: "Minutos",
+  power: {
+    label: "Potencia",
     color: "hsl(var(--accent))",
   },
 } satisfies ChartConfig
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-lg border bg-background p-2 shadow-sm">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-col space-y-1">
+            <span className="text-sm text-muted-foreground">Kilómetro</span>
+            <span className="font-bold">{label}</span>
+          </div>
+          <div className="flex flex-col space-y-1">
+            <span className="text-sm text-muted-foreground">Potencia</span>
+            <span className="font-bold">{payload[0].value} W</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
 
 export function PowerChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Análisis de Potencia</CardTitle>
-        <CardDescription>Tiempo en Zonas de Potencia (W)</CardDescription>
+        <CardTitle>Potencia por Kilómetro</CardTitle>
+        <CardDescription>Análisis de la potencia en cada kilómetro.</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
@@ -45,23 +64,24 @@ export function PowerChart() {
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="zone"
+              dataKey="kilometer"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
             />
             <YAxis
-              dataKey="minutes"
+              dataKey="power"
               tickLine={false}
               axisLine={false}
               tickMargin={10}
-              width={30}
+              width={40}
+              tickFormatter={(value) => `${value}W`}
             />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent indicator="line" />}
+              content={<CustomTooltip />}
             />
-            <Bar dataKey="minutes" fill="var(--color-minutes)" radius={4} />
+            <Bar dataKey="power" fill="var(--color-power)" radius={4} />
           </BarChart>
         </ChartContainer>
       </CardContent>
