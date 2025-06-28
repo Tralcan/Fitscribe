@@ -15,10 +15,12 @@ import {
 import { Download, Loader2, ArrowLeft } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 import { Logo } from '@/components/logo';
 import { FileUploader } from '@/components/file-uploader';
 import { FitDetails } from '@/components/fit-details';
+import { ActivityChart } from '@/components/activity-chart';
 import { sports, getSportByValue } from '@/lib/sports';
 
 export type FitData = {
@@ -40,8 +42,8 @@ export default function Home() {
     if (!selectedFile.name.toLowerCase().endsWith('.fit')) {
       toast({
         variant: "destructive",
-        title: "Invalid File Type",
-        description: "Please upload a valid .FIT file.",
+        title: "Tipo de Archivo no Válido",
+        description: "Por favor, sube un archivo .FIT válido.",
       });
       return;
     }
@@ -79,8 +81,8 @@ export default function Home() {
     URL.revokeObjectURL(url);
 
     toast({
-      title: "Download Started",
-      description: `Your modified file ${a.download} is downloading.`,
+      title: "Descarga Iniciada",
+      description: `Tu archivo modificado ${a.download} se está descargando.`,
     })
   };
 
@@ -116,7 +118,7 @@ export default function Home() {
             FITscribe
           </h1>
           <p className="text-md sm:text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">
-            Upload a <span className="font-semibold text-primary">.FIT</span> file, edit the sport, and download your updated activity.
+            Sube un archivo <span className="font-semibold text-primary">.FIT</span>, edita el deporte y descarga tu actividad actualizada.
           </p>
         </div>
 
@@ -131,7 +133,7 @@ export default function Home() {
               {status === 'loading' && (
                 <motion.div key="loading" initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition} className="flex flex-col items-center justify-center space-y-4 h-64">
                   <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                  <p className="text-muted-foreground">Analyzing your activity...</p>
+                  <p className="text-muted-foreground">Analizando tu actividad...</p>
                 </motion.div>
               )}
               {status === 'loaded' && fitData && (
@@ -140,18 +142,18 @@ export default function Home() {
                     <Button variant="ghost" size="icon" onClick={handleReset} className="mr-2">
                       <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <h2 className="text-2xl font-semibold font-headline">Edit Activity</h2>
+                    <h2 className="text-2xl font-semibold font-headline">Editar Actividad</h2>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-8">
                     <div className="space-y-6">
-                      <h3 className="text-xl font-semibold text-foreground font-headline">Activity Details</h3>
+                      <h3 className="text-xl font-semibold text-foreground font-headline">Detalles de la Actividad</h3>
                       <FitDetails data={fitData} />
                     </div>
                     <div className="space-y-6">
-                      <h3 className="text-xl font-semibold text-foreground font-headline">Modify Sport</h3>
+                      <h3 className="text-xl font-semibold text-foreground font-headline">Modificar Deporte</h3>
                       <div className="space-y-2">
-                        <Label htmlFor="sport-select" className="text-base">Sport</Label>
+                        <Label htmlFor="sport-select" className="text-base">Deporte</Label>
                         <Select onValueChange={setSelectedSport} value={selectedSport}>
                           <SelectTrigger id="sport-select" className="w-full h-12 text-base">
                             <SelectValue>
@@ -160,7 +162,7 @@ export default function Home() {
                                   <selectedSportData.icon className="h-5 w-5 text-primary" />
                                   <span>{selectedSportData.label}</span>
                                 </div>
-                              ) : 'Select a sport'}
+                              ) : 'Selecciona un deporte'}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
@@ -177,9 +179,12 @@ export default function Home() {
                       </div>
                       <Button onClick={handleDownload} size="lg" className="w-full bg-accent text-accent-foreground text-base h-12 hover:bg-accent/90 focus-visible:ring-accent">
                         <Download className="mr-2 h-5 w-5" />
-                        Download New .FIT File
+                        Descargar Nuevo Archivo .FIT
                       </Button>
                     </div>
+                  </div>
+                  <div className="mt-8">
+                    <ActivityChart />
                   </div>
                 </motion.div>
               )}
@@ -187,7 +192,7 @@ export default function Home() {
           </CardContent>
         </Card>
         <p className="text-center text-sm text-muted-foreground mt-6">
-            FITscribe is a tool for demonstration and does not store your files.
+            FITscribe es una herramienta de demostración y no almacena tus archivos.
         </p>
       </div>
     </main>

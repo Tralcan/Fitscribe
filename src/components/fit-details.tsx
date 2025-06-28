@@ -1,5 +1,6 @@
 import { Clock, Calendar, Zap, Route } from "lucide-react";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import type { FitData } from "@/app/page";
 
 interface FitDetailsProps {
@@ -23,22 +24,22 @@ export function FitDetails({ data }: FitDetailsProps) {
     <div className="space-y-6">
         <DetailItem
             icon={Zap}
-            label="Activity Type"
+            label="Tipo de Actividad"
             value={data.activityType}
         />
         <DetailItem
             icon={Calendar}
-            label="Start Time"
-            value={format(data.startTime, 'PPP')}
+            label="Fecha de Inicio"
+            value={format(data.startTime, 'PPP', { locale: es })}
         />
         <DetailItem
             icon={Clock}
-            label="Duration"
+            label="Duración"
             value={data.duration}
         />
         <DetailItem
             icon={Route}
-            label="Distance"
+            label="Distancia"
             value={`${data.distance} km`}
         />
     </div>

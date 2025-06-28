@@ -7,12 +7,12 @@ export type Sport = {
 };
 
 export const sports: Sport[] = [
-  { value: 'running', label: 'Running', icon: Footprints },
-  { value: 'cycling', label: 'Cycling', icon: Bike },
-  { value: 'swimming', label: 'Swimming', icon: Waves },
-  { value: 'strength_training', label: 'Workout', icon: Dumbbell },
-  { value: 'walking', label: 'Walking', icon: PersonStanding },
-  { value: 'generic', label: 'Other', icon: Activity },
+  { value: 'running', label: 'Correr', icon: Footprints },
+  { value: 'cycling', label: 'Ciclismo', icon: Bike },
+  { value: 'swimming', label: 'Natación', icon: Waves },
+  { value: 'strength_training', label: 'Entrenamiento', icon: Dumbbell },
+  { value: 'walking', label: 'Caminar', icon: PersonStanding },
+  { value: 'generic', label: 'Otro', icon: Activity },
 ];
 
 export const getSportByValue = (value: string): Sport | undefined => sports.find(s => s.value === value);

@@ -64,8 +64,8 @@ export function FileUploader({ onFileSelect }: FileUploaderProps) {
       onDrop={handleDrop}
     >
       <UploadCloud className={cn("w-16 h-16 mb-4", isDragging ? "text-primary" : "text-muted-foreground")} />
-      <h3 className="text-xl font-semibold text-foreground">Drag & drop your .FIT file here</h3>
-      <p className="mt-2 text-muted-foreground">or</p>
+      <h3 className="text-xl font-semibold text-foreground">Arrastra y suelta tu archivo .FIT aquí</h3>
+      <p className="mt-2 text-muted-foreground">o</p>
       <input
         ref={inputRef}
         type="file"
@@ -74,9 +74,9 @@ export function FileUploader({ onFileSelect }: FileUploaderProps) {
         onChange={handleFileChange}
       />
       <Button onClick={handleButtonClick} className="mt-4" size="lg">
-        Browse Files
+        Buscar Archivos
       </Button>
-      <p className="text-xs text-muted-foreground mt-4">Only .FIT files are accepted.</p>
+      <p className="text-xs text-muted-foreground mt-4">Solo se aceptan archivos .FIT.</p>
     </div>
   );
 }
