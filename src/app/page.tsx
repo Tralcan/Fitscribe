@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -12,9 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Download, Loader2, ArrowLeft } from 'lucide-react';
+import { Sparkles, Loader2, ArrowLeft } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
-import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 import { Logo } from '@/components/logo';
@@ -23,6 +22,7 @@ import { FitDetails } from '@/components/fit-details';
 import { ActivityChart } from '@/components/activity-chart';
 import { PowerChart } from '@/components/power-chart';
 import { sports, getSportByValue } from '@/lib/sports';
+import { summarizeActivity } from '@/ai/flows/summarize-activity-flow';
 
 export type FitData = {
   activityType: string;
@@ -41,6 +41,8 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [fitData, setFitData] = useState<FitData | null>(null);
   const [selectedSport, setSelectedSport] = useState<string>('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleFileSelect = (selectedFile: File) => {
@@ -70,29 +72,33 @@ export default function Home() {
       };
       setFitData(mockData);
       setSelectedSport(mockData.sport);
+      setSummary(null);
       setStatus('loaded');
     }, 1500);
   };
+  
+  const selectedSportData = useMemo(() => getSportByValue(selectedSport), [selectedSport]);
 
-  const handleDownload = () => {
-    if (!file) return;
-
-    // This is a mock download. In a real app, you would generate a new,
-    // modified FIT file with the updated sport. Here, we just download the original file.
-    const blob = new Blob([file], { type: file.type });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${selectedSport}_${file.name}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    toast({
-      title: "Descarga Iniciada",
-      description: `Tu archivo modificado ${a.download} se está descargando.`,
-    })
+  const handleGenerateSummary = async () => {
+    if (!fitData || !selectedSportData) return;
+    setIsGenerating(true);
+    setSummary(null);
+    try {
+      const result = await summarizeActivity({
+        activityData: { ...fitData, startTime: fitData.startTime.toISOString() },
+        selectedSportLabel: selectedSportData.label,
+      });
+      setSummary(result.summary);
+    } catch (error) {
+      console.error("Error generating summary:", error);
+      toast({
+        variant: "destructive",
+        title: "Error de la IA",
+        description: "No se pudo generar el resumen. Por favor, inténtalo de nuevo.",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleReset = () => {
@@ -100,9 +106,8 @@ export default function Home() {
     setFile(null);
     setFitData(null);
     setSelectedSport('');
+    setSummary(null);
   };
-
-  const selectedSportData = useMemo(() => getSportByValue(selectedSport), [selectedSport]);
 
   const pageVariants = {
     initial: { opacity: 0, y: 20 },
@@ -127,7 +132,7 @@ export default function Home() {
             FITscribe
           </h1>
           <p className="text-md sm:text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">
-            Sube un archivo <span className="font-semibold text-primary">.FIT</span>, edita el deporte y descarga tu actividad actualizada.
+            Sube un archivo <span className="font-semibold text-primary">.FIT</span>, edita el deporte y obtén un resumen de tu actividad con IA.
           </p>
         </div>
 
@@ -151,7 +156,7 @@ export default function Home() {
                     <Button variant="ghost" size="icon" onClick={handleReset} className="mr-2">
                       <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <h2 className="text-2xl font-semibold font-headline">Editar Actividad</h2>
+                    <h2 className="text-2xl font-semibold font-headline">Revisa tu Actividad</h2>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-8">
@@ -160,7 +165,7 @@ export default function Home() {
                       <FitDetails data={fitData} />
                     </div>
                     <div className="space-y-6">
-                      <h3 className="text-xl font-semibold text-foreground font-headline">Modificar Deporte</h3>
+                      <h3 className="text-xl font-semibold text-foreground font-headline">Modificar y Resumir</h3>
                       <div className="space-y-2">
                         <Label htmlFor="sport-select" className="text-base">Deporte</Label>
                         <Select onValueChange={setSelectedSport} value={selectedSport}>
@@ -187,14 +192,34 @@ export default function Home() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Button onClick={handleDownload} size="lg" className="w-full bg-accent text-accent-foreground text-base h-12 hover:bg-accent/90 focus-visible:ring-accent">
-                          <Download className="mr-2 h-5 w-5" />
-                          Descargar Nuevo Archivo .FIT
+                        <Button onClick={handleGenerateSummary} size="lg" className="w-full bg-accent text-accent-foreground text-base h-12 hover:bg-accent/90 focus-visible:ring-accent" disabled={isGenerating}>
+                          {isGenerating ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
+                          {isGenerating ? 'Generando...' : 'Generar Resumen con IA'}
                         </Button>
-                        <p className="text-xs text-center text-muted-foreground px-4">
-                            Nota: Esta es una demostración. La descarga renombrará tu archivo original, pero el contenido del archivo .FIT no se modificará.
-                        </p>
                       </div>
+
+                      {isGenerating && (
+                        <div className="flex flex-col items-center justify-center space-y-4 p-4 text-center">
+                          <p className="text-muted-foreground">La IA está calentando para escribir tu resumen...</p>
+                        </div>
+                      )}
+
+                      {summary && !isGenerating && (
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="pt-4">
+                            <Card className="bg-primary/5 border-primary/20">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-lg font-headline text-primary">
+                                        <Sparkles className="h-5 w-5" />
+                                        Resumen de tu Actividad
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-foreground whitespace-pre-wrap">{summary}</p>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+                      )}
+
                     </div>
                   </div>
                   <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
