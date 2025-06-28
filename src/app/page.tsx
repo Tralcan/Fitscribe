@@ -29,6 +29,10 @@ export type FitData = {
   startTime: Date;
   duration: string;
   distance: number;
+  avgPace?: string;
+  calories?: number;
+  avgHeartRate?: number;
+  maxHeartRate?: number;
 };
 
 export default function Home() {
@@ -58,6 +62,10 @@ export default function Home() {
         startTime: new Date(),
         duration: '01:05:23',
         distance: 10.2,
+        avgPace: "6:25 min/km",
+        calories: 750,
+        avgHeartRate: 158,
+        maxHeartRate: 175,
       };
       setFitData(mockData);
       setSelectedSport(mockData.sport);
