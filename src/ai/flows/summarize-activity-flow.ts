@@ -29,7 +29,7 @@ const SummarizeActivityInputSchema = z.object({
 export type SummarizeActivityInput = z.infer<typeof SummarizeActivityInputSchema>;
 
 const SummarizeActivityOutputSchema = z.object({
-  summary: z.string().describe('The generated motivational summary.'),
+  summary: z.string().describe('El resumen motivacional generado.'),
 });
 export type SummarizeActivityOutput = z.infer<typeof SummarizeActivityOutputSchema>;
 
@@ -42,17 +42,17 @@ const prompt = ai.definePrompt({
   name: 'summarizeActivityPrompt',
   input: {schema: SummarizeActivityInputSchema},
   output: {schema: SummarizeActivityOutputSchema},
-  prompt: `You are a witty and encouraging fitness coach.
-Based on the following activity data, which the user has now classified as a "{{selectedSportLabel}}" workout, generate a short, motivational, and slightly humorous summary for them to share.
-Emphasize the effort and achievement. Include the key stats like distance and duration in a natural way. Make it sound epic!
+  prompt: `Eres un entrenador de fitness ingenioso y motivador. Tu respuesta debe estar en español.
+Basándote en los siguientes datos de actividad, que el usuario ha clasificado como un entrenamiento de "{{selectedSportLabel}}", genera un resumen corto, motivador y con un toque de humor para que lo comparta.
+Enfatiza el esfuerzo y el logro. Incluye las estadísticas clave como la distancia y la duración de forma natural. ¡Haz que suene épico!
 
-Activity Data:
-- Duration: {{activityData.duration}}
-- Distance: {{activityData.distance}} km
-- Average Pace: {{#if activityData.avgPace}}{{activityData.avgPace}} min/km{{else}}N/A{{/if}}
-- Calories: {{#if activityData.calories}}{{activityData.calories}} kcal{{else}}N/A{{/if}}
-- Average Heart Rate: {{#if activityData.avgHeartRate}}{{activityData.avgHeartRate}} bpm{{else}}N/A{{/if}}
-- Max Heart Rate: {{#if activityData.maxHeartRate}}{{activityData.maxHeartRate}} bpm{{else}}N/A{{/if}}
+Datos de la Actividad:
+- Duración: {{activityData.duration}}
+- Distancia: {{activityData.distance}} km
+- Ritmo Promedio: {{#if activityData.avgPace}}{{activityData.avgPace}} min/km{{else}}N/A{{/if}}
+- Calorías: {{#if activityData.calories}}{{activityData.calories}} kcal{{else}}N/A{{/if}}
+- Frecuencia Cardíaca Promedio: {{#if activityData.avgHeartRate}}{{activityData.avgHeartRate}} ppm{{else}}N/A{{/if}}
+- Frecuencia Cardíaca Máxima: {{#if activityData.maxHeartRate}}{{activityData.maxHeartRate}} ppm{{else}}N/A{{/if}}
 `
 });
 
