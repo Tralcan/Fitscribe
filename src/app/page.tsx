@@ -38,10 +38,17 @@ export type FitData = {
   maxHeartRate?: number;
 };
 
+export type ChartDataItem = {
+  kilometer: string;
+  pace: number;
+  power: number;
+};
+
 export default function Home() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'loaded'>('idle');
   const [file, setFile] = useState<File | null>(null);
   const [fitData, setFitData] = useState<FitData | null>(null);
+  const [chartData, setChartData] = useState<ChartDataItem[]>([]);
   const [selectedSport, setSelectedSport] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
@@ -183,6 +190,48 @@ export default function Home() {
                 setFitData(newFitData);
                 setSelectedSport(newFitData.sport);
                 setSummary(null);
+
+                // Process records for charts
+                setChartData([]);
+                if (mainData.records && mainData.records.length > 0) {
+                    const kmData: { [key: number]: { speeds: number[], powers: number[] } } = {};
+
+                    for (const record of mainData.records) {
+                        if (record.distance === undefined || record.distance === null || record.speed === undefined || record.speed === null) continue;
+
+                        const km = Math.floor(record.distance / 1000) + 1;
+                        if (!kmData[km]) {
+                            kmData[km] = { speeds: [], powers: [] };
+                        }
+                        if (record.speed > 0) {
+                           kmData[km].speeds.push(record.speed);
+                        }
+                        if (record.power !== undefined && record.power !== null) {
+                            kmData[km].powers.push(record.power);
+                        }
+                    }
+
+                    const perKmStats = Object.keys(kmData).map(kmStr => {
+                        const km = parseInt(kmStr, 10);
+                        const data = kmData[km];
+                        
+                        const avgSpeed = data.speeds.length > 0 ? data.speeds.reduce((a, b) => a + b, 0) / data.speeds.length : 0;
+                        const avgPaceInSeconds = avgSpeed > 0 ? (1 / avgSpeed) * 1000 : 0;
+                        
+                        const avgPower = data.powers.length > 0
+                            ? data.powers.reduce((a, b) => a + b, 0) / data.powers.length
+                            : 0;
+                        
+                        return {
+                            kilometer: km.toString(),
+                            pace: Math.round(avgPaceInSeconds),
+                            power: Math.round(avgPower)
+                        };
+                    }).filter(d => d.pace > 0);
+
+                    setChartData(perKmStats);
+                }
+
                 setStatus('loaded');
             });
 
@@ -237,6 +286,7 @@ export default function Home() {
     setFitData(null);
     setSelectedSport('');
     setSummary(null);
+    setChartData([]);
   };
 
   const pageVariants = {
@@ -353,8 +403,8 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <ActivityChart />
-                    <PowerChart />
+                    <ActivityChart data={chartData} />
+                    <PowerChart data={chartData} />
                   </div>
                 </motion.div>
               )}

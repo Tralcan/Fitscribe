@@ -7,14 +7,7 @@ import {
   ChartTooltip,
   type ChartConfig,
 } from "@/components/ui/chart"
-
-const chartData = [
-    { kilometer: "1", pace: 390 }, { kilometer: "2", pace: 380 },
-    { kilometer: "3", pace: 385 }, { kilometer: "4", pace: 375 },
-    { kilometer: "5", pace: 370 }, { kilometer: "6", pace: 378 },
-    { kilometer: "7", pace: 382 }, { kilometer: "8", pace: 395 },
-    { kilometer: "9", pace: 400 }, { kilometer: "10", pace: 392 },
-]
+import type { ChartDataItem } from "@/app/page";
 
 const chartConfig = {
   pace: {
@@ -24,9 +17,9 @@ const chartConfig = {
 } satisfies ChartConfig
 
 const formatPace = (seconds: number) => {
-  if (isNaN(seconds) || seconds === null) return "0:00";
+  if (isNaN(seconds) || seconds === null || seconds <= 0) return "0:00";
   const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
+  const remainingSeconds = Math.round(seconds % 60);
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
@@ -50,7 +43,25 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export function ActivityChart() {
+interface ActivityChartProps {
+    data: ChartDataItem[];
+}
+
+export function ActivityChart({ data }: ActivityChartProps) {
+  if (!data || data.length === 0) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Ritmo por Kilómetro</CardTitle>
+                <CardDescription>Análisis del ritmo en cada kilómetro.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center justify-center min-h-[200px]">
+                <p className="text-muted-foreground">No hay datos de ritmo para mostrar.</p>
+            </CardContent>
+        </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -61,7 +72,7 @@ export function ActivityChart() {
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
           <BarChart
             accessibilityLayer
-            data={chartData}
+            data={data}
             margin={{
               top: 10,
               right: 10,
@@ -82,6 +93,7 @@ export function ActivityChart() {
               axisLine={false}
               tickMargin={10}
               width={50}
+              domain={['dataMin - 10', 'dataMax + 10']}
               tickFormatter={(value) => formatPace(value as number)}
             />
             <ChartTooltip

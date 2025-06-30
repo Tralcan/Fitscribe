@@ -7,14 +7,7 @@ import {
   ChartTooltip,
   type ChartConfig,
 } from "@/components/ui/chart"
-
-const chartData = [
-    { kilometer: "1", power: 220 }, { kilometer: "2", power: 230 },
-    { kilometer: "3", power: 225 }, { kilometer: "4", power: 240 },
-    { kilometer: "5", power: 250 }, { kilometer: "6", power: 245 },
-    { kilometer: "7", power: 235 }, { kilometer: "8", power: 215 },
-    { kilometer: "9", power: 210 }, { kilometer: "10", power: 228 },
-]
+import type { ChartDataItem } from "@/app/page";
 
 const chartConfig = {
   power: {
@@ -25,6 +18,9 @@ const chartConfig = {
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
+    const powerValue = payload[0].value;
+    if (powerValue === 0) return null;
+
     return (
       <div className="rounded-lg border bg-background p-2 shadow-sm">
         <div className="grid grid-cols-2 gap-2">
@@ -34,7 +30,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           </div>
           <div className="flex flex-col space-y-1">
             <span className="text-sm text-muted-foreground">Potencia</span>
-            <span className="font-bold">{payload[0].value} W</span>
+            <span className="font-bold">{powerValue} W</span>
           </div>
         </div>
       </div>
@@ -43,7 +39,27 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export function PowerChart() {
+interface PowerChartProps {
+    data: ChartDataItem[];
+}
+
+export function PowerChart({ data }: PowerChartProps) {
+  const powerData = data.filter(d => d.power > 0);
+
+  if (powerData.length === 0) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Potencia por Kilómetro</CardTitle>
+                <CardDescription>Análisis de la potencia en cada kilómetro.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center justify-center min-h-[200px]">
+                <p className="text-muted-foreground">No hay datos de potencia para mostrar.</p>
+            </CardContent>
+        </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -54,7 +70,7 @@ export function PowerChart() {
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
           <BarChart
             accessibilityLayer
-            data={chartData}
+            data={powerData}
             margin={{
               top: 10,
               right: 10,
@@ -75,6 +91,7 @@ export function PowerChart() {
               axisLine={false}
               tickMargin={10}
               width={40}
+              domain={['dataMin - 20', 'dataMax + 20']}
               tickFormatter={(value) => `${value}W`}
             />
             <ChartTooltip
