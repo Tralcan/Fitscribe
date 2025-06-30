@@ -104,7 +104,43 @@ export default function Home() {
                     return;
                 }
                 
-                const session = data.sessions?.[0] || (Array.isArray(data.records) && data.records.length > 0 ? data : undefined);
+                let session = data.sessions?.[0];
+
+                if (!session && data.laps?.length > 0) {
+                    session = data.laps[data.laps.length - 1];
+                }
+                
+                if (!session && Array.isArray(data.records) && data.records.length > 0) {
+                    const firstRecord = data.records[0];
+                    const lastRecord = data.records[data.records.length - 1];
+            
+                    if (firstRecord.timestamp && lastRecord.timestamp) {
+                        const totalTime = (lastRecord.timestamp.getTime() - firstRecord.timestamp.getTime()) / 1000;
+                        const avgSpeed = totalTime > 0 ? (lastRecord.distance || 0) / totalTime : 0;
+            
+                        const heartRateRecords = data.records.filter((r: any) => typeof r.heart_rate === 'number');
+                        const avgHeartRate = heartRateRecords.length > 0
+                            ? Math.round(heartRateRecords.reduce((sum: number, r: any) => sum + r.heart_rate, 0) / heartRateRecords.length)
+                            : undefined;
+                        const maxHeartRate = heartRateRecords.length > 0
+                            ? Math.max(...heartRateRecords.map((r: any) => r.heart_rate))
+                            : undefined;
+            
+                        const sportInfoFromData = data.sports?.[0];
+            
+                        session = {
+                            sport: sportInfoFromData?.sport || 'generic',
+                            sub_sport: sportInfoFromData?.sub_sport,
+                            start_time: firstRecord.timestamp,
+                            total_timer_time: totalTime,
+                            total_distance: lastRecord.distance,
+                            avg_speed: avgSpeed,
+                            total_calories: lastRecord.calories,
+                            avg_heart_rate: avgHeartRate,
+                            max_heart_rate: maxHeartRate,
+                        };
+                    }
+                }
 
                 if (!session) {
                     toast({
@@ -124,7 +160,7 @@ export default function Home() {
                     sport: sportInfo?.value || 'generic',
                     startTime: session.start_time,
                     duration: formatDuration(session.total_timer_time),
-                    distance: parseFloat((session.total_distance / 1000).toFixed(2)),
+                    distance: parseFloat(((session.total_distance || 0) / 1000).toFixed(2)),
                     avgPace: session.avg_speed ? formatPace(session.avg_speed) : undefined,
                     calories: session.total_calories,
                     avgHeartRate: session.avg_heart_rate,
