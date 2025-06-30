@@ -192,9 +192,6 @@ export default function Home() {
                 setSummary(null);
 
                 // Process records for charts
-                console.log('Parsed FIT file data:', JSON.parse(JSON.stringify(data)));
-                console.log('Determined session object:', JSON.parse(JSON.stringify(session)));
-
                 let activityRecords = [];
                 if (session.records && session.records.length > 0) {
                     activityRecords = session.records;
@@ -202,12 +199,6 @@ export default function Home() {
                     activityRecords = session.laps.flatMap((lap: any) => lap.records || []);
                 } else if (mainData.records && mainData.records.length > 0) {
                     activityRecords = mainData.records;
-                }
-
-                if (activityRecords.length > 0) {
-                  console.log(`Found ${activityRecords.length} records for chart processing.`);
-                } else {
-                  console.log('No `records` array found to process for charts. Please inspect the logged session and data objects.');
                 }
                 
                 setChartData([]);
