@@ -194,10 +194,18 @@ export default function Home() {
                 // Process records for charts
                 setChartData([]);
                 if (mainData.records && mainData.records.length > 0) {
+                    console.log('--- Chart Data Processing ---');
+                    console.log('Total records found:', mainData.records.length);
+                    if (mainData.records[0]) {
+                        console.log('First record sample (to check for `distance` field):', mainData.records[0]);
+                    }
+                    
                     const kmData: { [key: number]: { records: any[] } } = {};
 
                     for (const record of mainData.records) {
-                        if (record.distance === undefined || record.distance === null) continue;
+                        if (record.distance === undefined || record.distance === null) {
+                            continue;
+                        }
 
                         const km = Math.floor(record.distance / 1000) + 1;
                         if (!kmData[km]) {
@@ -206,6 +214,8 @@ export default function Home() {
                         kmData[km].records.push(record);
                     }
                     
+                    console.log('Data grouped by kilometer (this object should NOT be empty):', kmData);
+
                     const perKmStats = Object.keys(kmData).map(kmStr => {
                         const km = parseInt(kmStr, 10);
                         const { records } = kmData[km];
@@ -227,8 +237,11 @@ export default function Home() {
                         };
                     });
                     
-                    console.log('Calculated per-km stats:', perKmStats);
+                    console.log('Final calculated stats array for charts (this should NOT be empty):', perKmStats);
+                    console.log('---------------------------');
                     setChartData(perKmStats);
+                } else {
+                     console.log('No `mainData.records` found to process for charts.');
                 }
 
 

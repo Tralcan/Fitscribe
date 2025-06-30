@@ -17,7 +17,8 @@ const chartConfig = {
 } satisfies ChartConfig
 
 const formatPace = (seconds: number) => {
-  if (isNaN(seconds) || seconds === null || seconds <= 0) return "0:00";
+  if (isNaN(seconds) || seconds === null || seconds < 0) return "0:00";
+  if (seconds === 0) return "Parado";
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.round(seconds % 60);
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
@@ -48,11 +49,9 @@ interface ActivityChartProps {
 }
 
 export function ActivityChart({ data }: ActivityChartProps) {
-  console.log('ActivityChart received data:', data);
   const paceData = data.filter(d => d.pace !== undefined && d.pace !== null);
-  console.log('Filtered pace data:', paceData);
   
-  if (paceData.filter(d => d.pace > 0).length === 0) {
+  if (paceData.length === 0) {
     return (
         <Card>
             <CardHeader>
