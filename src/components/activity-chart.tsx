@@ -95,7 +95,6 @@ export function ActivityChart({ data }: ActivityChartProps) {
               axisLine={false}
               tickMargin={10}
               width={50}
-              domain={['dataMin - 10', 'dataMax + 10']}
               tickFormatter={(value) => formatPace(value as number)}
             />
             <ChartTooltip

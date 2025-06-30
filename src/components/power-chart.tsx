@@ -91,7 +91,6 @@ export function PowerChart({ data }: PowerChartProps) {
               axisLine={false}
               tickMargin={10}
               width={40}
-              domain={['dataMin - 20', 'dataMax + 20']}
               tickFormatter={(value) => `${value}W`}
             />
             <ChartTooltip
