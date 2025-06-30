@@ -197,7 +197,7 @@ export default function Home() {
                     const kmData: { [key: number]: { records: any[] } } = {};
 
                     for (const record of mainData.records) {
-                        if (record.distance === undefined || record.distance === null || record.timer_time === undefined || record.timer_time === null) continue;
+                        if (record.distance === undefined || record.distance === null) continue;
 
                         const km = Math.floor(record.distance / 1000) + 1;
                         if (!kmData[km]) {
@@ -210,25 +210,14 @@ export default function Home() {
                         const km = parseInt(kmStr, 10);
                         const { records } = kmData[km];
 
-                        if (records.length < 2) {
-                            return { kilometer: km.toString(), pace: 0, power: 0 };
-                        }
+                        const paceRecords = records.filter(r => r.speed !== undefined && r.speed !== null && r.speed > 0);
+                        const avgPaceInSeconds = paceRecords.length > 0
+                            ? paceRecords.reduce((total, record) => total + (1000 / record.speed), 0) / paceRecords.length
+                            : 0;
                         
-                        const firstRecord = records[0];
-                        const lastRecord = records[records.length - 1];
-
-                        const distDelta = lastRecord.distance - firstRecord.distance;
-                        const timeDelta = lastRecord.timer_time - firstRecord.timer_time;
-
-                        const avgSpeed = (timeDelta > 0 && distDelta > 0) ? distDelta / timeDelta : 0;
-                        const avgPaceInSeconds = avgSpeed > 0 ? 1000 / avgSpeed : 0;
-
-                        const powers = records
-                            .map(r => r.power)
-                            .filter((p): p is number => p !== undefined && p !== null && typeof p === 'number' && p > 0);
-                        
-                        const avgPower = powers.length > 0
-                            ? powers.reduce((a, b) => a + b, 0) / powers.length
+                        const powerRecords = records.filter(r => r.power !== undefined && r.power !== null && typeof r.power === 'number' && r.power > 0);
+                        const avgPower = powerRecords.length > 0
+                            ? powerRecords.reduce((total, record) => total + record.power, 0) / powerRecords.length
                             : 0;
                         
                         return {
