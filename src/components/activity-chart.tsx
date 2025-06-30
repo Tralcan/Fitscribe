@@ -48,9 +48,7 @@ interface ActivityChartProps {
 }
 
 export function ActivityChart({ data }: ActivityChartProps) {
-  console.log("ActivityChart received raw data:", data);
-  const paceData = data.filter(d => d.pace > 0);
-  console.log("ActivityChart data after filtering for pace > 0:", paceData);
+  const paceData = data.filter(d => d.pace !== undefined && d.pace !== null);
   
   if (paceData.length === 0) {
     return (
@@ -98,6 +96,7 @@ export function ActivityChart({ data }: ActivityChartProps) {
               tickMargin={10}
               width={50}
               tickFormatter={(value) => formatPace(value as number)}
+              reversed
             />
             <ChartTooltip
               cursor={false}
