@@ -104,7 +104,8 @@ export default function Home() {
                     return;
                 }
                 
-                const session = data.sessions?.[0];
+                const session = data.sessions?.[0] || (Array.isArray(data.records) && data.records.length > 0 ? data : undefined);
+
                 if (!session) {
                     toast({
                         variant: "destructive",
