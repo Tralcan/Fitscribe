@@ -15,6 +15,7 @@ import {
 import { Sparkles, Loader2, ArrowLeft } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { es } from "date-fns/locale";
+import FitParser from 'fit-file-parser';
 
 import { Logo } from '@/components/logo';
 import { FileUploader } from '@/components/file-uploader';
@@ -26,6 +27,7 @@ import { summarizeActivity } from '@/ai/flows/summarize-activity-flow';
 
 export type FitData = {
   activityType: string;
+  subSport?: string;
   sport: string;
   startTime: Date;
   duration: string;
@@ -45,6 +47,22 @@ export default function Home() {
   const [summary, setSummary] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const formatDuration = (seconds: number) => {
+    if (isNaN(seconds)) return "00:00:00";
+    const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+    const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+    const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  };
+
+  const formatPace = (speed_mps: number) => {
+    if (!speed_mps || speed_mps <= 0) return "N/A";
+    const pace_spm = 16.6667 / speed_mps;
+    const pace_min = Math.floor(pace_spm);
+    const pace_sec = Math.round((pace_spm - pace_min) * 60).toString().padStart(2, '0');
+    return `${pace_min}:${pace_sec} min/km`;
+  };
+
   const handleFileSelect = (selectedFile: File) => {
     if (!selectedFile.name.toLowerCase().endsWith('.fit')) {
       toast({
@@ -57,24 +75,86 @@ export default function Home() {
     setFile(selectedFile);
     setStatus('loading');
 
-    // Mock processing the FIT file
-    setTimeout(() => {
-      const mockData: FitData = {
-        activityType: 'Running',
-        sport: 'running',
-        startTime: new Date(),
-        duration: '01:05:23',
-        distance: 10.2,
-        avgPace: "6:25 min/km",
-        calories: 750,
-        avgHeartRate: 158,
-        maxHeartRate: 175,
-      };
-      setFitData(mockData);
-      setSelectedSport(mockData.sport);
-      setSummary(null);
-      setStatus('loaded');
-    }, 1500);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const fitParser = new FitParser({
+                force: true,
+                speedUnit: 'm/s',
+                lengthUnit: 'm',
+                temperatureUnit: 'celsius',
+                elapsedRecordField: true,
+                mode: 'cascade',
+            });
+
+            const buffer = e.target?.result;
+            if (!buffer) {
+                throw new Error("File buffer is empty.");
+            }
+            
+            fitParser.parse(buffer, (error: any, data: any) => {
+                if (error) {
+                    console.error("Error parsing FIT file:", error);
+                    toast({
+                        variant: "destructive",
+                        title: "Error al Leer el Archivo",
+                        description: "No se pudo procesar el archivo .FIT. Puede que esté corrupto.",
+                    });
+                    setStatus('idle');
+                    return;
+                }
+                
+                const session = data.sessions?.[0];
+                if (!session) {
+                    toast({
+                        variant: "destructive",
+                        title: "No se Encontraron Datos",
+                        description: "El archivo no contiene datos de actividad válidos.",
+                    });
+                    setStatus('idle');
+                    return;
+                }
+
+                const sportInfo = getSportByValue(session.sport) || getSportByValue('generic');
+
+                const newFitData: FitData = {
+                    activityType: sportInfo?.label || 'Actividad',
+                    subSport: session.sub_sport,
+                    sport: sportInfo?.value || 'generic',
+                    startTime: session.start_time,
+                    duration: formatDuration(session.total_timer_time),
+                    distance: parseFloat((session.total_distance / 1000).toFixed(2)),
+                    avgPace: session.avg_speed ? formatPace(session.avg_speed) : undefined,
+                    calories: session.total_calories,
+                    avgHeartRate: session.avg_heart_rate,
+                    maxHeartRate: session.max_heart_rate,
+                };
+
+                setFitData(newFitData);
+                setSelectedSport(newFitData.sport);
+                setSummary(null);
+                setStatus('loaded');
+            });
+
+        } catch (err) {
+            console.error("FIT Parser failed", err);
+            toast({
+                variant: "destructive",
+                title: "Error Crítico",
+                description: "Ocurrió un error inesperado al procesar el archivo.",
+            });
+            setStatus('idle');
+        }
+    };
+    reader.onerror = () => {
+        toast({
+            variant: "destructive",
+            title: "Error de Lectura",
+            description: "No se pudo leer el archivo seleccionado.",
+        });
+        setStatus('idle');
+    }
+    reader.readAsArrayBuffer(selectedFile);
   };
   
   const selectedSportData = useMemo(() => getSportByValue(selectedSport), [selectedSport]);

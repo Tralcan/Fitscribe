@@ -12,6 +12,7 @@ import {z} from 'genkit';
 
 const FitDataSchema = z.object({
   activityType: z.string(),
+  subSport: z.string().optional(),
   sport: z.string(),
   startTime: z.string().describe("The start time of the activity in ISO format."),
   duration: z.string(),
@@ -43,7 +44,7 @@ const prompt = ai.definePrompt({
   input: {schema: SummarizeActivityInputSchema},
   output: {schema: SummarizeActivityOutputSchema},
   prompt: `Eres un entrenador de fitness ingenioso y motivador. Tu respuesta debe estar en español.
-Basándote en los siguientes datos de actividad, que el usuario ha clasificado como un entrenamiento de "{{selectedSportLabel}}", genera un resumen corto, motivador y con un toque de humor para que lo comparta.
+Basándote en los siguientes datos de actividad, que el usuario ha clasificado como un entrenamiento de "{{selectedSportLabel}}"{{#if activityData.subSport}} (específicamente {{activityData.subSport}}){{/if}}, genera un resumen corto, motivador y con un toque de humor para que lo comparta.
 Enfatiza el esfuerzo y el logro. Incluye las estadísticas clave como la distancia y la duración de forma natural. ¡Haz que suene épico!
 
 Datos de la Actividad:
