@@ -192,17 +192,19 @@ export default function Home() {
                 setSummary(null);
 
                 // Process records for charts
+                const activityRecords = (data.activity && data.activity.records) || data.records || [];
                 setChartData([]);
-                if (mainData.records && mainData.records.length > 0) {
+
+                if (activityRecords.length > 0) {
                     console.log('--- Chart Data Processing ---');
-                    console.log('Total records found:', mainData.records.length);
-                    if (mainData.records[0]) {
-                        console.log('First record sample (to check for `distance` field):', mainData.records[0]);
+                    console.log('Total records found:', activityRecords.length);
+                    if (activityRecords[0]) {
+                        console.log('First record sample (to check for `distance` field):', activityRecords[0]);
                     }
                     
                     const kmData: { [key: number]: { records: any[] } } = {};
 
-                    for (const record of mainData.records) {
+                    for (const record of activityRecords) {
                         if (record.distance === undefined || record.distance === null) {
                             continue;
                         }
@@ -241,7 +243,7 @@ export default function Home() {
                     console.log('---------------------------');
                     setChartData(perKmStats);
                 } else {
-                     console.log('No `mainData.records` found to process for charts.');
+                     console.log('No `records` array found to process for charts.');
                 }
 
 
