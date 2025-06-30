@@ -44,7 +44,9 @@ interface PowerChartProps {
 }
 
 export function PowerChart({ data }: PowerChartProps) {
+  console.log('PowerChart received data:', data);
   const powerData = data.filter(d => d.power !== undefined && d.power !== null);
+  console.log('Filtered power data:', powerData);
 
   if (powerData.filter(d => d.power > 0).length === 0) {
     return (

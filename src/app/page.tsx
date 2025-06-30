@@ -192,7 +192,24 @@ export default function Home() {
                 setSummary(null);
 
                 // Process records for charts
-                const activityRecords = session.records || mainData.records || [];
+                console.log('Parsed FIT file data:', JSON.parse(JSON.stringify(data)));
+                console.log('Determined session object:', JSON.parse(JSON.stringify(session)));
+
+                let activityRecords = [];
+                if (session.records && session.records.length > 0) {
+                    activityRecords = session.records;
+                } else if (session.laps && session.laps.length > 0) {
+                    activityRecords = session.laps.flatMap((lap: any) => lap.records || []);
+                } else if (mainData.records && mainData.records.length > 0) {
+                    activityRecords = mainData.records;
+                }
+
+                if (activityRecords.length > 0) {
+                  console.log(`Found ${activityRecords.length} records for chart processing.`);
+                } else {
+                  console.log('No `records` array found to process for charts. Please inspect the logged session and data objects.');
+                }
+                
                 setChartData([]);
 
                 if (activityRecords.length > 0) {
@@ -219,7 +236,7 @@ export default function Home() {
                             ? paceRecords.reduce((total, record) => total + (1000 / record.speed), 0) / paceRecords.length
                             : 0;
                         
-                        const powerRecords = records.filter(r => r.power !== undefined && r.power !== null && typeof r.power === 'number' && r.power > 0);
+                        const powerRecords = records.filter(r => r.power !== undefined && r.power !== null && typeof r.power === 'number');
                         const avgPower = powerRecords.length > 0
                             ? powerRecords.reduce((total, record) => total + record.power, 0) / powerRecords.length
                             : 0;
