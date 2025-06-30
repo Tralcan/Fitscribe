@@ -192,7 +192,7 @@ export default function Home() {
                 setSummary(null);
 
                 // Process records for charts
-                const activityRecords = mainData.records || [];
+                const activityRecords = session.records || mainData.records || [];
                 setChartData([]);
 
                 if (activityRecords.length > 0) {
@@ -232,9 +232,6 @@ export default function Home() {
                     });
                     
                     setChartData(perKmStats);
-                } else {
-                     console.log('No `records` array found to process for charts. Investigating parsed data object:');
-                     console.log(data);
                 }
 
 
