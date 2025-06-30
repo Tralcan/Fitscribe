@@ -48,9 +48,11 @@ interface ActivityChartProps {
 }
 
 export function ActivityChart({ data }: ActivityChartProps) {
+  console.log('ActivityChart received data:', data);
   const paceData = data.filter(d => d.pace !== undefined && d.pace !== null);
+  console.log('Filtered pace data:', paceData);
   
-  if (paceData.length === 0) {
+  if (paceData.filter(d => d.pace > 0).length === 0) {
     return (
         <Card>
             <CardHeader>

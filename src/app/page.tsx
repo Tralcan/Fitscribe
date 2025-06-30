@@ -227,6 +227,7 @@ export default function Home() {
                         };
                     });
                     
+                    console.log('Calculated per-km stats:', perKmStats);
                     setChartData(perKmStats);
                 }
 
