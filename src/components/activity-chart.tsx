@@ -48,7 +48,9 @@ interface ActivityChartProps {
 }
 
 export function ActivityChart({ data }: ActivityChartProps) {
-  if (!data || data.length === 0) {
+  const paceData = data.filter(d => d.pace > 0);
+  
+  if (paceData.length === 0) {
     return (
         <Card>
             <CardHeader>
@@ -72,7 +74,7 @@ export function ActivityChart({ data }: ActivityChartProps) {
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
           <BarChart
             accessibilityLayer
-            data={data}
+            data={paceData}
             margin={{
               top: 10,
               right: 10,

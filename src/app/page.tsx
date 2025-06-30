@@ -227,7 +227,7 @@ export default function Home() {
                             pace: Math.round(avgPaceInSeconds),
                             power: Math.round(avgPower)
                         };
-                    }).filter(d => d.pace > 0);
+                    });
 
                     setChartData(perKmStats);
                 }
