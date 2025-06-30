@@ -194,6 +194,7 @@ export default function Home() {
                 // Process records for charts
                 setChartData([]);
                 if (mainData.records && mainData.records.length > 0) {
+                    console.log("Raw records from FIT file:", mainData.records);
                     const kmData: { [key: number]: { records: any[] } } = {};
 
                     for (const record of mainData.records) {
@@ -205,6 +206,8 @@ export default function Home() {
                         }
                         kmData[km].records.push(record);
                     }
+                    
+                    console.log("Data grouped by kilometer:", kmData);
 
                     const perKmStats = Object.keys(kmData).map(kmStr => {
                         const km = parseInt(kmStr, 10);
@@ -226,7 +229,8 @@ export default function Home() {
                             power: Math.round(avgPower)
                         };
                     });
-
+                    
+                    console.log("Final processed stats for charts:", perKmStats);
                     setChartData(perKmStats);
                 }
 
