@@ -194,32 +194,41 @@ export default function Home() {
                 // Process records for charts
                 setChartData([]);
                 if (mainData.records && mainData.records.length > 0) {
-                    const kmData: { [key: number]: { speeds: number[], powers: number[] } } = {};
+                    const kmData: { [key: number]: { records: any[] } } = {};
 
                     for (const record of mainData.records) {
-                        if (record.distance === undefined || record.distance === null || record.speed === undefined || record.speed === null) continue;
+                        if (record.distance === undefined || record.distance === null || record.timer_time === undefined || record.timer_time === null) continue;
 
                         const km = Math.floor(record.distance / 1000) + 1;
                         if (!kmData[km]) {
-                            kmData[km] = { speeds: [], powers: [] };
+                            kmData[km] = { records: [] };
                         }
-                        if (record.speed > 0) {
-                           kmData[km].speeds.push(record.speed);
-                        }
-                        if (record.power !== undefined && record.power !== null) {
-                            kmData[km].powers.push(record.power);
-                        }
+                        kmData[km].records.push(record);
                     }
 
                     const perKmStats = Object.keys(kmData).map(kmStr => {
                         const km = parseInt(kmStr, 10);
-                        const data = kmData[km];
+                        const { records } = kmData[km];
+
+                        if (records.length < 2) {
+                            return { kilometer: km.toString(), pace: 0, power: 0 };
+                        }
                         
-                        const avgSpeed = data.speeds.length > 0 ? data.speeds.reduce((a, b) => a + b, 0) / data.speeds.length : 0;
-                        const avgPaceInSeconds = avgSpeed > 0 ? (1 / avgSpeed) * 1000 : 0;
+                        const firstRecord = records[0];
+                        const lastRecord = records[records.length - 1];
+
+                        const distDelta = lastRecord.distance - firstRecord.distance;
+                        const timeDelta = lastRecord.timer_time - firstRecord.timer_time;
+
+                        const avgSpeed = (timeDelta > 0 && distDelta > 0) ? distDelta / timeDelta : 0;
+                        const avgPaceInSeconds = avgSpeed > 0 ? 1000 / avgSpeed : 0;
+
+                        const powers = records
+                            .map(r => r.power)
+                            .filter((p): p is number => p !== undefined && p !== null && typeof p === 'number' && p > 0);
                         
-                        const avgPower = data.powers.length > 0
-                            ? data.powers.reduce((a, b) => a + b, 0) / data.powers.length
+                        const avgPower = powers.length > 0
+                            ? powers.reduce((a, b) => a + b, 0) / powers.length
                             : 0;
                         
                         return {
@@ -231,6 +240,7 @@ export default function Home() {
 
                     setChartData(perKmStats);
                 }
+
 
                 setStatus('loaded');
             });
